@@ -8,6 +8,8 @@
 - Figma live canvas extraction: Blocked because no Figma `fileKey` or node reference was provided to the connected MCP session
 - Design reference source available locally from exported UI project:
   - `C:\Users\Administrator\Downloads\Barq Recharge Mobile UI Screens`
+- Design reference copied into repository for long-term access:
+  - `design_reference/Barq Recharge Mobile UI Screens`
 
 ## Product Summary
 Barq Recharge (برق للشحن الفوري) is a local Yemeni instant recharge and digital goods application. The app uses Yemeni Rial (YER) only and operates on a pre-funded local agent balance. No international payment gateway support is allowed.
