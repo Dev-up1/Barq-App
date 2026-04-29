@@ -1,0 +1,35 @@
+name: barq_recharge
+description: Barq Recharge foundation scaffold for Yemeni instant recharge and digital goods.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.3.1
+  dio: ^5.9.0
+  go_router: ^17.2.2
+  drift: ^2.28.2
+  sqlite3_flutter_libs: ^0.5.39
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  flutter_secure_storage: ^9.2.4
+  connectivity_plus: ^7.0.0
+  intl: ^0.20.2
+  supabase_flutter: ^2.12.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.28.2
+  build_runner: ^2.7.1
+
+flutter:
+  uses-material-design: true
