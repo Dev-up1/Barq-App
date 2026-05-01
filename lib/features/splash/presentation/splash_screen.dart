@@ -27,37 +27,34 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0x3310B981),
-              AppColors.background,
-              Color(0x33A5D6F3),
-            ],
-          ),
+          color: AppColors.background,
         ),
         child: Stack(
           children: [
-            const _BlurBubble(top: 100, right: 32, size: 130, color: Color(0x5510B981)),
-            const _BlurBubble(bottom: 120, left: 24, size: 180, color: Color(0x55A5D6F3)),
+            const _BlurBubble(
+                top: 100, right: 32, size: 130, color: Color(0x3319A76F)),
+            const _BlurBubble(
+                bottom: 120, left: 24, size: 180, color: Color(0x338ECBF6)),
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ScaleTransition(
-                    scale: Tween<double>(begin: 0.92, end: 1.06).animate(_controller),
+                    scale: Tween<double>(begin: 0.92, end: 1.06)
+                        .animate(_controller),
                     child: Container(
                       width: 104,
                       height: 104,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [AppColors.primary, Color(0xCC10B981)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppColors.foreground, AppColors.darkCard],
                         ),
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x4410B981),
+                            color: AppColors.shadow,
                             blurRadius: 32,
                             offset: Offset(0, 16),
                           ),

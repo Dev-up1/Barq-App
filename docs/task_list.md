@@ -27,43 +27,53 @@
 - [x] Add Supabase environment-based initialization
 
 ## Data Layer Tasks
-- [ ] Create Drift database and migrations
-- [ ] Implement `local_wallet` table
-- [ ] Implement `transactions` table
-- [ ] Implement `services_catalog` table
-- [ ] Add optional `pending_sms_queue` table
-- [ ] Add repository interfaces for wallet, catalog, and transactions
+- [x] Create Drift database and migrations boilerplate
+- [x] Implement `local_wallet` table
+- [x] Implement `transactions` table
+- [x] Implement `services_catalog` table
+- [x] Add optional `pending_sms_queue` table
+- [x] Add repository interfaces for wallet, catalog, and transactions
 
 ## Service Layer Tasks
-- [ ] Build bearer-auth HTTP client
-- [ ] Create PSI registry abstraction
+- [x] Build bearer-auth HTTP client
+- [x] Create PSI registry abstraction
 - [ ] Implement wallet sync service
 - [ ] Implement services catalog sync service
-- [ ] Implement recharge request service
+- [x] Implement recharge request service
 - [ ] Add API error mapping
 
 ## Tax Engine Tasks
-- [ ] Implement tax classification enum
-- [ ] Implement 10% telecom tax rule
-- [ ] Implement 5% general sales tax rule
+- [x] Implement tax classification enum
+- [x] Implement 10% telecom tax rule
+- [x] Implement 5% general sales tax rule
 - [ ] Add breakdown formatter for YER receipts
-- [ ] Add unit tests for rounding and totals
+- [x] Add unit tests for rounding and totals
 
 ## Offline Tasks
-- [ ] Detect connectivity state
-- [ ] Design SMS command templates per provider
-- [ ] Queue offline SMS operations locally
+- [x] Detect connectivity state
+- [x] Design SMS command templates per provider
+- [x] Queue offline SMS operations locally
 - [ ] Add duplicate-submission guards
 - [ ] Add reconciliation flow after reconnect
+
+## Phase 4 Tasks
+- [x] Require biometric verification before recharge submission
+- [x] Add wallet daily/monthly spending limits to local database
+- [x] Add sub-account management tables and repository layer
+- [x] Add commission logs table and monthly PDF export service
+- [x] Add spending-limit guard for owner and sub-account flows
+- [x] Add WhatsApp support launcher with prefilled dispute context
+- [x] Add persistent support entry point in the app UI
+- [x] Add agent dashboard with summary cards and sub-account controls
 
 ## UI Planning Tasks for Phase 2
 - [x] Extract exact Figma tokens from exported source
 - [x] Build dashboard shell
 - [x] Build Telecom tab
 - [x] Build Gaming tab
-- [ ] Build wallet summary cards
+- [x] Build wallet summary cards
 - [ ] Build transaction history list
-- [ ] Build recharge confirmation and receipt screens
+- [x] Build recharge confirmation and receipt screens
 
 ## Open Decisions
 - [ ] Confirm whether entered price includes tax or excludes tax

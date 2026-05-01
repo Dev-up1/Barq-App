@@ -35,7 +35,8 @@ class _AuthScreenState extends State<AuthScreen> {
       _nodes[index + 1].requestFocus();
     }
 
-    final isReady = _controllers.every((controller) => controller.text.isNotEmpty);
+    final isReady =
+        _controllers.every((controller) => controller.text.isNotEmpty);
     if (isReady) {
       Future<void>.delayed(
         const Duration(milliseconds: 250),
@@ -51,15 +52,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0x2210B981),
-              AppColors.background,
-              Color(0x22A5D6F3),
-            ],
-          ),
+          color: AppColors.background,
         ),
         child: SafeArea(
           child: Padding(
@@ -72,18 +65,21 @@ class _AuthScreenState extends State<AuthScreen> {
                   height: 88,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.primary, Color(0xCC10B981)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [AppColors.foreground, AppColors.darkCard],
                     ),
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x3310B981),
+                        color: AppColors.shadow,
                         blurRadius: 28,
                         offset: Offset(0, 16),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.lock_rounded, color: Colors.white, size: 40),
+                  child: const Icon(Icons.lock_rounded,
+                      color: Colors.white, size: 40),
                 ),
                 const SizedBox(height: 24),
                 Text('مرحباً بك', style: theme.textTheme.headlineMedium),
@@ -91,7 +87,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(
                   'أدخل رمز PIN الخاص بتطبيق ${AppStrings.appNameAr}',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.muted),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: 28),
                 GlassCard(
@@ -119,7 +116,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                   counterText: '',
                                   contentPadding: EdgeInsets.zero,
                                 ),
-                                onChanged: (value) => _onPinChanged(index, value),
+                                onChanged: (value) =>
+                                    _onPinChanged(index, value),
                               ),
                             ),
                           ),
