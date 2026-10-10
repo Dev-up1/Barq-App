@@ -135,7 +135,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           action: canContactSupport
               ? SnackBarAction(
                   label: 'تواصل مع الدعم',
-                  onPressed: () => _openSupportChatForReference(reference!),
+                  onPressed: () => _openSupportChatForReference(reference),
                 )
               : null,
         ),
