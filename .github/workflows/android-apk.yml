@@ -1,0 +1,148 @@
+name: Android APK
+
+on:
+  push:
+    branches:
+      - fix/android-build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate required build secrets
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          AGGREGATOR_API_BASE_URL: ${{ secrets.AGGREGATOR_API_BASE_URL }}
+          AGGREGATOR_API_TOKEN: ${{ secrets.AGGREGATOR_API_TOKEN }}
+          AGGREGATOR_SMS_NUMBER: ${{ secrets.AGGREGATOR_SMS_NUMBER }}
+          WHATSAPP_SUPPORT_NUMBER: ${{ secrets.WHATSAPP_SUPPORT_NUMBER }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in \
+            SUPABASE_URL \
+            SUPABASE_PUBLISHABLE_KEY \
+            AGGREGATOR_API_BASE_URL \
+            AGGREGATOR_API_TOKEN \
+            AGGREGATOR_SMS_NUMBER \
+            WHATSAPP_SUPPORT_NUMBER; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required GitHub Actions secret: $name"
+              missing=1
+            fi
+          done
+
+          exit "$missing"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle*
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Set up Flutter 3.41.8
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: '3.41.8'
+          cache: true
+          pub-cache: true
+
+      - name: Restore missing Gradle wrapper files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for file in \
+            android/gradlew \
+            android/gradlew.bat \
+            android/gradle/wrapper/gradle-wrapper.jar; do
+            if [[ ! -f "$file" ]]; then
+              missing=1
+            fi
+          done
+
+          if [[ "$missing" -eq 0 ]]; then
+            exit 0
+          fi
+
+          flutter precache --android
+          flutter_bin="$(readlink -f "$(command -v flutter)")"
+          flutter_root="$(dirname "$(dirname "$flutter_bin")")"
+          wrapper_source="$flutter_root/bin/cache/artifacts/gradle_wrapper"
+
+          test -f "$wrapper_source/gradlew"
+          test -f "$wrapper_source/gradlew.bat"
+          test -f "$wrapper_source/gradle/wrapper/gradle-wrapper.jar"
+
+          mkdir -p android/gradle/wrapper
+          [[ -f android/gradlew ]] || install -m 755 "$wrapper_source/gradlew" android/gradlew
+          [[ -f android/gradlew.bat ]] || install -m 644 "$wrapper_source/gradlew.bat" android/gradlew.bat
+          [[ -f android/gradle/wrapper/gradle-wrapper.jar ]] || \
+            install -m 644 "$wrapper_source/gradle/wrapper/gradle-wrapper.jar" \
+              android/gradle/wrapper/gradle-wrapper.jar
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Generate Drift sources
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze project
+        run: flutter analyze --no-pub --no-fatal-infos
+
+      - name: Run local tests
+        run: flutter test --no-pub
+
+      - name: Build debug APK
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          AGGREGATOR_API_BASE_URL: ${{ secrets.AGGREGATOR_API_BASE_URL }}
+          AGGREGATOR_API_TOKEN: ${{ secrets.AGGREGATOR_API_TOKEN }}
+          AGGREGATOR_SMS_NUMBER: ${{ secrets.AGGREGATOR_SMS_NUMBER }}
+          WHATSAPP_SUPPORT_NUMBER: ${{ secrets.WHATSAPP_SUPPORT_NUMBER }}
+        run: |
+          set -euo pipefail
+
+          flutter build apk --debug --no-pub \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define="AGGREGATOR_API_BASE_URL=$AGGREGATOR_API_BASE_URL" \
+            --dart-define="AGGREGATOR_API_TOKEN=$AGGREGATOR_API_TOKEN" \
+            --dart-define="AGGREGATOR_SMS_NUMBER=$AGGREGATOR_SMS_NUMBER" \
+            --dart-define="WHATSAPP_SUPPORT_NUMBER=$WHATSAPP_SUPPORT_NUMBER"
+
+      - name: Verify APK output
+        run: test -f build/app/outputs/flutter-apk/app-debug.apk
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: barq-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
