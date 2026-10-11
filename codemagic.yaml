@@ -1,0 +1,125 @@
+workflows:
+  android-debug-apk:
+    name: Android Debug APK
+    instance_type: linux_x2
+    max_build_duration: 45
+
+    environment:
+      groups:
+        - barq_debug
+      flutter: 3.41.8
+      java: 17
+      ubuntu: 24.04
+      ndk: 28.2.13676358
+
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: fix/android-build
+          include: true
+          source: true
+      cancel_previous_builds: true
+
+    scripts:
+      - name: Validate required application variables
+        script: |
+          set +x
+          set -euo pipefail
+
+          missing=0
+          for name in SUPABASE_URL SUPABASE_PUBLISHABLE_KEY; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required Codemagic environment variable: $name" >&2
+              missing=1
+            fi
+          done
+          [[ "$missing" -eq 0 ]] || exit 1
+
+          if [[ "$SUPABASE_PUBLISHABLE_KEY" == sb_secret_* ]]; then
+            echo "SUPABASE_PUBLISHABLE_KEY must not contain a Supabase secret key." >&2
+            exit 1
+          fi
+
+          if [[ "$SUPABASE_PUBLISHABLE_KEY" == *.*.* ]]; then
+            payload="${SUPABASE_PUBLISHABLE_KEY#*.}"
+            payload="${payload%%.*}"
+            case $((${#payload} % 4)) in
+              2) payload="${payload}==" ;;
+              3) payload="${payload}=" ;;
+            esac
+            if printf '%s' "$payload" | tr '_-' '/+' | base64 --decode 2>/dev/null | \
+              grep -Eq '"role"[[:space:]]*:[[:space:]]*"service_role"'; then
+              echo "SUPABASE_PUBLISHABLE_KEY must not contain a service_role key." >&2
+              exit 1
+            fi
+          fi
+
+      - name: Verify build toolchain
+        script: |
+          set -euo pipefail
+          flutter --version
+          java -version
+          test -n "${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+
+      - name: Restore missing Gradle wrapper files
+        script: |
+          set -euo pipefail
+
+          missing=0
+          for file in \
+            android/gradlew \
+            android/gradlew.bat \
+            android/gradle/wrapper/gradle-wrapper.jar; do
+            if [[ ! -f "$file" ]]; then
+              missing=1
+            fi
+          done
+
+          if [[ "$missing" -eq 1 ]]; then
+            flutter precache --android
+            wrapper_source="$FLUTTER_ROOT/bin/cache/artifacts/gradle_wrapper"
+
+            test -f "$wrapper_source/gradlew"
+            test -f "$wrapper_source/gradlew.bat"
+            test -f "$wrapper_source/gradle/wrapper/gradle-wrapper.jar"
+
+            mkdir -p android/gradle/wrapper
+            [[ -f android/gradlew ]] || install -m 755 "$wrapper_source/gradlew" android/gradlew
+            [[ -f android/gradlew.bat ]] || install -m 644 "$wrapper_source/gradlew.bat" android/gradlew.bat
+            [[ -f android/gradle/wrapper/gradle-wrapper.jar ]] || \
+              install -m 644 "$wrapper_source/gradle/wrapper/gradle-wrapper.jar" \
+                android/gradle/wrapper/gradle-wrapper.jar
+          fi
+
+      - name: Get Flutter dependencies
+        script: flutter pub get
+
+      - name: Generate Drift sources
+        script: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze project
+        script: flutter analyze --no-pub --no-fatal-infos
+
+      - name: Run local tests
+        script: flutter test --no-pub
+
+      - name: Build debug APK
+        script: |
+          set +x
+          set -euo pipefail
+          flutter build apk --debug --no-pub \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"
+
+      - name: Verify APK output
+        script: test -f build/app/outputs/flutter-apk/app-debug.apk
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-debug.apk
